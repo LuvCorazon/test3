@@ -47,3 +47,14 @@ INSERT_store_detail_query = """
     INSERT INTO store_detail (product_id, category, info_product)
     VALUES (?, ?, ?)
 """
+
+
+CREATE_TABLE_collections = """
+     CREATE TABLE IF NOT EXISTS collections (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     collection TEXT,
+     productid TEXT,)"""
+
+INSERT_collection_query = """
+    INSERT INTO collections (collection, productid)
+    VALUES (?, ?)"""
