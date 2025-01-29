@@ -1,51 +1,35 @@
-from aiogram import Bot, Dispatcher, executor, types
-from decouple import config
+from aiogram import executor
 import logging
-import os
-
-token = config('TOKEN')
-
-bot = Bot(token=token)
-dp = Dispatcher(bot = bot)
-
-Admins = [1093744655, ]
+from config import bot, Admins, dp
+from handlers import (commands, echo, quiz, FSM_registration, store_fsm,
+                      send_products,delete_products, edit_products,)
+from buttons import start
+from db import main_db
 
 async def on_startup(_):
     for admin in Admins:
-        await bot.send_message(chat_id=admin, text='bot activated')
+        await bot.send_message(chat_id=admin, text='Бок включен!', reply_markup=start)
 
-@dp.message_handler(commands=['start'])
-async def start_handler(message: types.Message):
-    await bot.send_message(chat_id=message.from_user.id,
-                           text=f'Hello {message.from_user.first_name}!\n'
-                                f'Your tg id -{message.from_user.id}\n')
+    await main_db.create_db()
 
 
-@dp.message_handler(commands=['meme'])
-async def meme_handler(message: types.Message):
-    photo_path = os.path.join('media', 'img.png')
+commands.register_handlers(dp)
+quiz.register_handlers(dp)
 
-    photo = open (photo_path, 'rb')
+FSM_registration.register_handlers_fsm_reg(dp)
+store_fsm.register_handlers_store(dp)
 
-    await bot.send_photo(chat_id=message.from_user.id,
-                         photo=photo,
-                         caption = 'meme')
-
-@dp.message_handler(lambda message: message.text.isdigit())  # Фильтруем сообщения, которые содержат только цифры
-async def square_number_handler(message: types.Message):
-    number = int(message.text)  # Преобразуем строку в целое число
-    squared = number ** 2  # Возводим в квадрат
-    logging.info(f"User {message.from_user.id} sent a number: {number}, squared result: {squared}")
-    await message.answer(f"The square of {number} is {squared}")
+send_products.register_handlers(dp)
+delete_products.register_handlers(dp)
+edit_products.register_handlers(dp)
 
 
-@dp.message_handler()
-async def echo_handler(message: types.Message):
-    await message.answer(message.text)
+echo.register_handlers(dp)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    executor.start_polling(dp, skip_updates=True)
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+
 
 
